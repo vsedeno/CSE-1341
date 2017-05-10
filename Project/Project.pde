@@ -1,4 +1,16 @@
 
+// Victoria Sedeno
+// 9 May 2017
+// Pong Game 
+//To move left paddle: 'x' for down, 's' for up
+//To move right paddle: 'Down Arrow' for down, 'Up Arrow" for up
+//Click mouse to reset game
+//CLick anywhere to restart game
+
+boolean paused = true;
+int ballX_speed_temp;
+int ballY_speed_temp;
+
 int leftPaddleX; 
 int leftPaddleY;
 
@@ -24,7 +36,7 @@ PFont scoreFont;
 
 void setup () {
   size(800, 600); 
-  paddleWidth = width/32;   //using fractions will help maintain proportions if you adjust the size of the screen
+  paddleWidth = width/32;
   paddleHeight = height/8; 
 
   leftPaddleX = width/10;
@@ -33,21 +45,15 @@ void setup () {
   rightPaddleX = width - (width/10);
   rightPaddleY = height/2; 
 
-  ballX = width/2;
-  ballY = height/2;
-
-  ballX_speed = 3;
-  ballY_speed = 2;
+  reset();
 
   ballSize = width/20; 
 
   leftScore = 0;
   rightScore = 0;
 
-  scoreFont = loadFont ("AppleSDGothicNeo-UltraLight-40.vlw"); //this is calling the font that we've set up through 
-  //tools > create font // loadFont should have a return type of PFont
+  scoreFont = loadFont ("AppleSDGothicNeo-UltraLight-40.vlw"); 
 }
-
 void draw () {
   background(0);
   rectMode(CENTER);
@@ -68,18 +74,23 @@ void draw () {
   if (yUpperBoundHit() || yLowerBoundHit()) {
     ballY_speed = -ballY_speed;
   }
-
-  if (ballX - ballSize/2 <= leftPaddleX + paddleWidth/2) {
+  
+  if ((rightPaddleHit() && ballX_speed > 0) || leftPaddleHit() && ballX_speed < 0) {
     ballX_speed = -ballX_speed;
-    ballY_speed += random(-.5, .5);
-    leftScore = leftScore + 1;
+    ballY_speed += random(-1, 1); 
   } 
-
-  if (ballX + ballSize/2 >= rightPaddleX - paddleWidth/2) {
-    ballX_speed = -ballX_speed; 
-    ballY_speed += random(-.5, .5);
-    rightScore = rightScore + 1;
+  
+  if(ballX <= 0 || ballX >= width)
+  {
+    if(ballX_speed > 0) {
+      leftScore = leftScore + 1;
+    }
+    if(ballX_speed < 0) {
+      rightScore = rightScore + 1;
+    }
+    reset();
   }
+
 }
 
 void displayLeftPaddle() { 
@@ -95,7 +106,7 @@ void displayRightPaddle() {
 }
 
 boolean yUpperBoundHit() {
-  boolean result = ballY + (ballSize/2) >=height;
+  boolean result = ballY + (ballSize/2) >= height;
   return result;
 }
 
@@ -103,53 +114,79 @@ boolean yLowerBoundHit() {
   return ballY - (ballSize/2) <= 0;
 } 
 
-boolean xUpperBoundHit() {
-  boolean result = ballX + (ballSize/2) >=width;
-  return result;
+boolean rightPaddleHit() {
+  boolean xRightBoundsHit = false;
+  boolean contact = false;
+  if((ballX + (ballSize/2) >= rightPaddleX - paddleWidth/2) && (ballX - (ballSize/2) <= rightPaddleX + paddleWidth/2))
+    xRightBoundsHit = true;
+  if((ballY - (ballSize/2) >= rightPaddleY - paddleHeight/2) && (ballY + (ballSize/2) <= rightPaddleY + paddleHeight/2))
+    contact = true;
+  return xRightBoundsHit && contact;
 }
 
-boolean xLowerBoundHit() {
-  return ballY + (ballSize/2) >= 0;
+boolean leftPaddleHit() {
+  boolean xLeftBoundsHit = false;
+  boolean contact = false;
+  if((ballX - (ballSize/2) <= leftPaddleX + paddleWidth/2) && (ballX + (ballSize/2) >= leftPaddleX - paddleWidth/2)) {
+    xLeftBoundsHit = true;
+  }
+  if((ballY + (ballSize/2) <= leftPaddleY + paddleHeight/2) && (ballY - (ballSize/2) >= leftPaddleY - paddleHeight/2)) {
+    contact = true;
+  }
+  return xLeftBoundsHit && contact;
 } 
 
-void keyPressed() {   //when a key is pressed, I want my paddle to move
+void reset() {
+  ballX = width/2;
+  ballY = height/2;
+  
+  if(random(0,2) > 1) { 
+    ballX_speed = 3;
+  }
+  else {
+    ballX_speed = -3;
+  }
+  ballY_speed = 2;
+}
+
+void keyPressed() { 
   if (key == 'x') {
-    leftPaddleY = leftPaddleY + 15;
+    leftPaddleY = leftPaddleY + 30; 
   }
 
   if (key == 's') {
-    leftPaddleY = leftPaddleY - 15;
+    leftPaddleY = leftPaddleY - 30;
   }
 
   if (keyCode == DOWN) {
-    rightPaddleY = rightPaddleY + 15;
+    rightPaddleY = rightPaddleY + 30;
   }
 
   if (keyCode == UP) {
-    rightPaddleY = rightPaddleY - 15;
+    rightPaddleY = rightPaddleY - 30;
   }
-  
-  if (key == 'g') {
-  
-  ballX = width/2;
-  ballY = height/2;
 
-  ballX_speed = 3;
-  ballY_speed = 2;
+  if (key == 'p') {
+    if(paused) {
+      paused = false;
+      ballX_speed_temp = ballX_speed;
+      ballY_speed_temp = ballY_speed;
+      ballX_speed = 0;
+      ballY_speed = 0;
+    }
+    else
+    {
+      paused = true;
+      ballX_speed = ballX_speed_temp;
+      ballY_speed = ballY_speed_temp;
+    }
   }
 }
 
 void mousePressed() {
   if(mousePressed) {
-  
-  ballX = width/2;
-  ballY = height/2;
-
-  ballX_speed = 0;
-  ballY_speed = 0;
-  
-  leftScore = 0;
-  rightScore = 0;
-  
+    reset();
+    leftScore = 0;
+    rightScore = 0;
   }
 }
